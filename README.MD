@@ -1,5 +1,7 @@
 # Cinema Ticket Booking
 
+Live: https://cinema-ticket-booking-production.up.railway.app/
+
 A backend service for booking cinema seats, built in Go and backed by Redis. The core problem this project solves is **preventing double-booking when multiple users try to claim the same seat at the same time** — the booking flow uses Redis's atomic `SETNX` operation as a distributed lock, so only one request can ever successfully hold a given seat, even under heavy concurrent load.
 
 ## How It Works
