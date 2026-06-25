@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/sikozonpc/cinema/internal/adapters/redis"
 	"github.com/sikozonpc/cinema/internal/booking"
@@ -16,7 +17,12 @@ func main() {
 
 	mux.Handle("GET /", http.FileServer(http.Dir("static")))
 
-	store := booking.NewRedisStore(redis.NewClient("localhost:6379"))
+	redisAddr := os.Getenv("REDIS_ADDR")
+	if redisAddr == "" {
+		redisAddr = "localhost:6379"
+	}
+
+	store := booking.NewRedisStore(redis.NewClient(redisAddr))
 	svc := booking.NewService(store)
 
 	bookingHandler := booking.NewHandler(svc)
@@ -27,7 +33,13 @@ func main() {
 	mux.HandleFunc("PUT /sessions/{sessionID}/confirm", bookingHandler.ConfirmSession)
 	mux.HandleFunc("DELETE /sessions/{sessionID}", bookingHandler.ReleaseSession)
 
-	if err := http.ListenAndServe(":8080", mux); err != nil {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Printf("listening on :%s", port)
+	if err := http.ListenAndServe(":"+port, mux); err != nil {
 		log.Fatal(err)
 	}
 }
